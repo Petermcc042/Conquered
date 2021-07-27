@@ -21,11 +21,6 @@ namespace GlassyGames.Conquered
             isShootPressed = _isShootPressed;
         }
 
-        private void Awake()
-        {
-            if (!photonView.IsMine) { return; }
-        }
-
         private void Start()
         {
             cam = GetComponentInChildren<Camera>();

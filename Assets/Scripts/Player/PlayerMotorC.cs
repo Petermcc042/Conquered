@@ -9,7 +9,10 @@ namespace GlassyGames.Conquered
 
         private Vector3 velocity = Vector3.zero;
         private float rotation = 0f;
-        private Vector3 cameraRotation = Vector3.zero;
+        private float cameraRotationX = 0f;
+        private float currentCameraRotationX = 0f;
+        private float cameraClamp = 85f;
+        private Vector3 jumpForce = Vector3.zero;
 
         private CharacterController characterController;
 
@@ -29,10 +32,17 @@ namespace GlassyGames.Conquered
             rotation = _rotation;
         }
 
-        public void RotateCamera(Vector3 _cameraRotation)
+        public void RotateCamera(float _cameraRotationX)
         {
-            cameraRotation = _cameraRotation;
+            cameraRotationX = _cameraRotationX;
         }
+
+        public void ApplyJump(Vector3 _jumpForce)
+        {
+            jumpForce = _jumpForce;
+        }
+
+        
 
 
         private void FixedUpdate()
@@ -45,7 +55,7 @@ namespace GlassyGames.Conquered
         {
             if (velocity != Vector3.zero)
             {
-                Vector3 finalVelocity = new Vector3(velocity.x * Time.deltaTime, velocity.y, velocity.z * Time.deltaTime);
+                Vector3 finalVelocity = new Vector3(velocity.x * Time.deltaTime, (velocity.y +jumpForce.y) * Time.deltaTime, velocity.z * Time.deltaTime);
                 characterController.Move(finalVelocity);
             }
         }
@@ -55,7 +65,9 @@ namespace GlassyGames.Conquered
             transform.Rotate(Vector3.up, rotation * Time.deltaTime);
             if (cam != null)
             {
-                cam.transform.Rotate(cameraRotation * Time.deltaTime);
+                currentCameraRotationX -= cameraRotationX * Time.deltaTime;
+                currentCameraRotationX = Mathf.Clamp(currentCameraRotationX, -cameraClamp, cameraClamp);
+                cam.transform.localEulerAngles = new Vector3(currentCameraRotationX, 0f, 0f);
             }
         }
     }

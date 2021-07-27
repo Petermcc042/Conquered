@@ -11,14 +11,18 @@ namespace GlassyGames.Conquered
     {
         #region Variables
 
+        [Tooltip("The local player instance. Uses this to know if the local player is represented in the scene")]
+        public static GameObject LocalPlayerInstance;
+
+        [SerializeField]
+        Behaviour[] componentsToDisable;
+
         bool IsFiring;
 
         public float maxHealth = 1f;
         public float currentHealth = 1f;
 
-        [Tooltip("The local player instance. Uses this to know if the local player is represented in the scene")]
-        public static GameObject LocalPlayerInstance;
-
+        Camera sceneCamera;
 
         #endregion
 
@@ -42,6 +46,24 @@ namespace GlassyGames.Conquered
         private void Start()
         {
             UnityEngine.SceneManagement.SceneManager.sceneLoaded += OnSceneLoaded;
+
+            //disabling other players components so we do not access them
+            if (!photonView.IsMine)
+            {
+                for (int i = 0; i < componentsToDisable.Length; i++)
+                {
+                    componentsToDisable[i].enabled = false;
+                }
+            }
+            else
+            {
+                // if we find a scene camera while in the game disable it
+                sceneCamera = Camera.main;
+                if (sceneCamera != null)
+                {
+                    sceneCamera.gameObject.SetActive(false);
+                }
+            }
         }
 
 
@@ -79,6 +101,11 @@ namespace GlassyGames.Conquered
             // always call the base to remove callbacks
             base.OnDisable();
             UnityEngine.SceneManagement.SceneManager.sceneLoaded -= OnSceneLoaded;
+
+            if (sceneCamera != null)
+            {
+                sceneCamera.gameObject.SetActive(true);
+            }
         }
 
         #endregion

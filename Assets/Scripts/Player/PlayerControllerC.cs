@@ -15,6 +15,8 @@ namespace GlassyGames.Conquered
         private float sensitivityY = 0.2f;
         [SerializeField]
         float gravity = -30f;
+        [SerializeField]
+        float jumpForce = 10f;
 
         private PlayerMotorC motor;
         private PlayerShootC playerShoot;
@@ -25,13 +27,13 @@ namespace GlassyGames.Conquered
         Vector2 horizontalInput = Vector2.zero;
         Vector2 mouseInput = Vector2.zero;
 
-        float xClamp = 85f;
         float groundedGravity = -0.5f;
 
 
         bool isShootPressed;
         bool isMovementPressed;
         bool isRunPressed;
+        bool isJumpPressed;
 
         int isWalkingHash;
         int isRunningHash;
@@ -53,13 +55,16 @@ namespace GlassyGames.Conquered
             animator = GetComponent<Animator>();
             characterController = GetComponent<CharacterController>();
 
-            Cursor.lockState = CursorLockMode.Locked;
+            // FOR ACTUAL GAME UNCOMMENT
+            // Cursor.lockState = CursorLockMode.Locked;
 
             input.Gameplay.Move.performed += ctx => horizontalInput = ctx.ReadValue<Vector2>();
             input.Gameplay.Move.canceled += ctx => horizontalInput = ctx.ReadValue<Vector2>();
             input.Gameplay.Move.started += ctx => horizontalInput = ctx.ReadValue<Vector2>();
             input.Gameplay.Run.performed += ctx => isRunPressed = ctx.ReadValueAsButton();
             input.Gameplay.Run.canceled += ctx => isRunPressed = ctx.ReadValueAsButton();
+            input.Gameplay.Jump.performed += ctx => isJumpPressed = ctx.ReadValueAsButton();
+            input.Gameplay.Jump.canceled += ctx => isJumpPressed = ctx.ReadValueAsButton();
             input.Gameplay.MouseX.performed += ctx => mouseInput.x = ctx.ReadValue<float>();
             input.Gameplay.MouseY.performed += ctx => mouseInput.y = ctx.ReadValue<float>();
         }
@@ -85,6 +90,14 @@ namespace GlassyGames.Conquered
                 _velocity.y += gravity * Time.deltaTime;
             }
 
+            // calculate jump force based on player input
+            Vector3 _jumpForce = Vector3.zero;
+            if (isJumpPressed)
+            {
+                _jumpForce = Vector3.up * jumpForce;
+            }
+            motor.ApplyJump(_jumpForce);
+
             // apply movement
             motor.Move(_velocity);
 
@@ -97,12 +110,10 @@ namespace GlassyGames.Conquered
 
 
             // Camera Rotation
-            // clamp rotation
-            float mouseInputY = Mathf.Clamp(-mouseInput.y, -xClamp, xClamp);
             // calculate rotation as a float angle
-            Vector3 _cameraRotation = new Vector3(mouseInputY, 0f, 0f) * sensitivityY;
+            float _cameraRotationX = mouseInput.y * sensitivityY;
             // apply player rotation
-            motor.RotateCamera(_cameraRotation);
+            motor.RotateCamera(_cameraRotationX);
 
 
             // Player Animation
