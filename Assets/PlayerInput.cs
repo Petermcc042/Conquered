@@ -61,7 +61,7 @@ public class @PlayerInput : IInputActionCollection, IDisposable
                 {
                     ""name"": ""Shoot"",
                     ""type"": ""Button"",
-                    ""id"": ""d5ded0cd-481b-4fdb-9099-9057252e96fe"",
+                    ""id"": ""8178f4dc-0a95-45a1-a24c-afceef4b1b34"",
                     ""expectedControlType"": ""Button"",
                     ""processors"": """",
                     ""interactions"": """"
@@ -169,7 +169,7 @@ public class @PlayerInput : IInputActionCollection, IDisposable
                 },
                 {
                     ""name"": """",
-                    ""id"": ""bcdd2da3-9e4d-412c-ac2e-463c7b84e64e"",
+                    ""id"": ""3a1dc5c2-c132-4746-894f-361a974e72e9"",
                     ""path"": ""<Mouse>/leftButton"",
                     ""interactions"": """",
                     ""processors"": """",

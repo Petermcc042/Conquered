@@ -4,10 +4,10 @@ using Photon.Pun;
 namespace GlassyGames.Conquered
 {
     /// <summary>
-    /// Player manager.
-    /// Handles fire Input and Beams.
+    /// Handles scene management.
     /// </summary>
-    public class PlayerManagerC : MonoBehaviourPunCallbacks, IPunObservable
+    [RequireComponent(typeof(PlayerC))]
+    public class PlayerManagerC : MonoBehaviourPunCallbacks
     {
         #region Variables
 
@@ -16,11 +16,12 @@ namespace GlassyGames.Conquered
 
         [SerializeField]
         Behaviour[] componentsToDisable;
-
-        bool IsFiring;
+        [SerializeField]
+        string remoteLayerName = "RemotePlayer";
 
         public float maxHealth = 1f;
         public float currentHealth = 1f;
+
 
         Camera sceneCamera;
 
@@ -33,13 +34,14 @@ namespace GlassyGames.Conquered
         {
             // #Important
             // used in GameManager.cs: we keep track of the localPlayer instance to prevent instantiation when levels are synchronised
-            if (photonView.IsMine)
+            if (this.photonView.IsMine)
             {
                 LocalPlayerInstance = this.gameObject;
             }
             // #Critical
             // we flag as don't destroy on load so that instance survives level synchronisation, thus giving a seamless experience when levels load
             DontDestroyOnLoad(this.gameObject);
+
         }
 
 
@@ -47,13 +49,10 @@ namespace GlassyGames.Conquered
         {
             UnityEngine.SceneManagement.SceneManager.sceneLoaded += OnSceneLoaded;
 
-            //disabling other players components so we do not access them
             if (!photonView.IsMine)
             {
-                for (int i = 0; i < componentsToDisable.Length; i++)
-                {
-                    componentsToDisable[i].enabled = false;
-                }
+                DisableComponents();
+                AssignRemoteLayer();
             }
             else
             {
@@ -64,22 +63,49 @@ namespace GlassyGames.Conquered
                     sceneCamera.gameObject.SetActive(false);
                 }
             }
-        }
 
-
-        /// <summary>
-        /// MonoBehaviour method called on GameObject by Unity on every frame.
-        /// </summary>
-        void Update()
-        {
-            if (photonView.IsMine)
+            if (PhotonNetwork.IsConnected == true)
             {
-                if (currentHealth <= 0f)
-                {
-                    GameManagerC.Instance.LeaveRoom();
-                }
+                string _netID = photonView.InstantiationId.ToString();
+                PlayerC _player = GetComponent<PlayerC>();
+
+                GameManagerC.RegisterPlayer(_netID, _player);
             }
         }
+
+
+        public override void OnDisable()
+        {
+            // always call the base to remove callbacks
+            base.OnDisable();
+            UnityEngine.SceneManagement.SceneManager.sceneLoaded -= OnSceneLoaded;
+
+            if (sceneCamera != null)
+            {
+                sceneCamera.gameObject.SetActive(true);
+            }
+
+            GameManagerC.UnregisterPlayer(transform.name);
+        }
+
+        #endregion
+
+        void DisableComponents()
+        {
+            //disabling other players components so we do not access them
+            for (int i = 0; i < componentsToDisable.Length; i++)
+            {
+                componentsToDisable[i].enabled = false;
+            }
+        }
+
+        void AssignRemoteLayer()
+        {
+            gameObject.layer = LayerMask.NameToLayer(remoteLayerName);
+        }
+
+
+        #region scene management
 
         void OnSceneLoaded(UnityEngine.SceneManagement.Scene scene, UnityEngine.SceneManagement.LoadSceneMode loadingMode)
         {
@@ -96,40 +122,9 @@ namespace GlassyGames.Conquered
             }
         }
 
-        public override void OnDisable()
-        {
-            // always call the base to remove callbacks
-            base.OnDisable();
-            UnityEngine.SceneManagement.SceneManager.sceneLoaded -= OnSceneLoaded;
-
-            if (sceneCamera != null)
-            {
-                sceneCamera.gameObject.SetActive(true);
-            }
-        }
-
         #endregion
 
 
-        #region IPunObservable implementation
-
-        public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
-        {
-            if (stream.IsWriting)
-            {
-                // We own this player: send the others our data
-                stream.SendNext(IsFiring);
-                stream.SendNext(currentHealth);
-            }
-            else
-            {
-                // Network player, recieve data
-                this.IsFiring = (bool)stream.ReceiveNext();
-                this.currentHealth = (float)stream.ReceiveNext();
-            }
-        }
-
-        #endregion
 
 
     }

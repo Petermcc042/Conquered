@@ -18,7 +18,9 @@ namespace GlassyGames.Conquered
         [SerializeField]
         float jumpForce = 10f;
 
+        [SerializeField]
         private PlayerMotorC motor;
+        [SerializeField]
         private PlayerShootC playerShoot;
         PlayerInput input;
         Animator animator;
@@ -29,8 +31,6 @@ namespace GlassyGames.Conquered
 
         float groundedGravity = -0.5f;
 
-
-        bool isShootPressed;
         bool isMovementPressed;
         bool isRunPressed;
         bool isJumpPressed;
@@ -67,6 +67,7 @@ namespace GlassyGames.Conquered
             input.Gameplay.Jump.canceled += ctx => isJumpPressed = ctx.ReadValueAsButton();
             input.Gameplay.MouseX.performed += ctx => mouseInput.x = ctx.ReadValue<float>();
             input.Gameplay.MouseY.performed += ctx => mouseInput.y = ctx.ReadValue<float>();
+            input.Gameplay.Shoot.performed += _ => playerShoot.Shoot();
         }
 
         private void Update()
@@ -141,7 +142,6 @@ namespace GlassyGames.Conquered
             {
                 animator.SetBool(isRunningHash, false);
             }
-
 
 
         }

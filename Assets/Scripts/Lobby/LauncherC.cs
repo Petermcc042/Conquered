@@ -20,6 +20,8 @@ namespace GlassyGames.Conquered
         [Tooltip("The UI panel to inform the user that the connection is in progress")]
         [SerializeField]
         private GameObject progresslabel;
+        [SerializeField]
+        public GameObject connectButton;
 
 
         /// <summary>
@@ -56,6 +58,8 @@ namespace GlassyGames.Conquered
         {
             progresslabel.SetActive(false);
             controlPanel.SetActive(false);
+
+            PhotonNetwork.ConnectUsingSettings(); // connects to Master photon server
             
         }
 
@@ -94,7 +98,7 @@ namespace GlassyGames.Conquered
 
         public override void OnConnectedToMaster()
         {
-            Debug.Log("Launcher: OnConnectedToMaster() was called by PUN");
+            Debug.Log("Launcher: Player has connected to Photon Servers");
 
             // we don't want to do anything if we are not attempting to join a room
             //this case where isConnecting is false is typically when you lost or quit the game, when this level is loaded, OnConnectedToMaster will be called, in that case

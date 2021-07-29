@@ -5,8 +5,8 @@ namespace GlassyGames.Conquered
     {
         public string name = "Rifle";
 
-        public float damage = 10f;
-        public float range = 200f;
+        public int damage = 10;
+        public int range = 200;
 
     }
 }

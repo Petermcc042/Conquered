@@ -1,17 +1,27 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using Photon.Pun;
+using System.Collections.Generic;
+using System;
 
 namespace GlassyGames.Conquered
 {
     public class GameManagerC: MonoBehaviourPunCallbacks
     {
-        #region Public Methods
+        #region Variables
 
         [Tooltip("The prefab to use for representing the player")]
         public GameObject playerPrefab;
 
         public static GameManagerC Instance;
+
+        private static Dictionary<string, PlayerC> players = new Dictionary<string, PlayerC>();
+
+        private const string PLAYER_PREFIX = "Player ";
+
+        #endregion
+
+        #region Public Methods
 
         private void Start()
         {
@@ -70,6 +80,7 @@ namespace GlassyGames.Conquered
             }
         }
 
+
         /// <summary>
         /// Called when the local player has left the room. We need to load the launcher scene 
         /// </summary>
@@ -91,6 +102,38 @@ namespace GlassyGames.Conquered
             Debug.LogFormat("PhotonNetwork : Loading Level : {0}", PhotonNetwork.CurrentRoom.PlayerCount);
             PhotonNetwork.LoadLevel("Room for " + PhotonNetwork.CurrentRoom.PlayerCount);
         }
+
+        // when a player joins they are assigned in photon an id 
+        public static void RegisterPlayer(string _netID, PlayerC _player)
+        {
+            string _playerID = PLAYER_PREFIX + _netID;
+            players.Add(_playerID, _player);
+            _player.transform.name = _playerID;
+        }
+
+        public static void UnregisterPlayer(string _playerID)
+        {
+            players.Remove(_playerID);
+        }
+
+        public static PlayerC GetPlayer(string _playerID)
+        {
+            return players[_playerID];
+        }
+
+/*        private void OnGUI()
+        {
+            GUILayout.BeginArea(new Rect(200, 200, 200, 500));
+            GUILayout.BeginVertical();
+
+            foreach(string _playerID in players.Keys)
+            {
+                GUILayout.Label(_playerID + "  =  " + players[_playerID].transform.name);
+            }
+
+            GUILayout.EndVertical();
+            GUILayout.EndArea();
+        }*/
 
         #endregion
 

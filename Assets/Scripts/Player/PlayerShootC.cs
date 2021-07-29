@@ -1,4 +1,5 @@
 using Photon.Pun;
+using System;
 using UnityEngine;
 
 namespace GlassyGames.Conquered
@@ -9,22 +10,15 @@ namespace GlassyGames.Conquered
 
         public PlayerWeaponC weapon;
 
-        public Camera cam;
-
-        bool isShootPressed;
+        [SerializeField]
+        private Camera cam;
 
         #endregion
 
         #region MonoBehaviours
-        public void GetIsShootPressed(bool _isShootPressed)
-        {
-            isShootPressed = _isShootPressed;
-        }
 
         private void Start()
         {
-            cam = GetComponentInChildren<Camera>();
-
             if (cam == null)
             {
                 Debug.LogError("Player Shoot: No Camera Referenced");
@@ -33,14 +27,6 @@ namespace GlassyGames.Conquered
 
         }
 
-        private void Update()
-        {
-            if (isShootPressed)
-            {
-                Debug.Log($"yay");
-                Shoot();
-            }
-        }
 
         #endregion
 
@@ -52,12 +38,22 @@ namespace GlassyGames.Conquered
         {
             if (Physics.Raycast(cam.transform.position, cam.transform.forward, out RaycastHit _hit, weapon.range))
             {
-                if (_hit.collider.GetComponent<PlayerHealthC>() != null)
+                if (_hit.collider.tag == "Player")
                 {
-                    _hit.collider.GetComponent<PlayerHealthC>().TakeDamage(weapon.damage);
-
+                    // _hit.collider.GetComponent<PlayerHealthC>().TakeDamage(weapon.damage);
+                    this.photonView.RPC("PlayerShot", RpcTarget.All, _hit.collider.name, weapon.damage);
                 }
             }
+        }
+
+
+        [PunRPC]
+        void PlayerShot(string _playerID, int _damage)
+        {
+            Debug.Log(_playerID + " has been shot.");
+
+            PlayerC _player = GameManagerC.GetPlayer(_playerID);
+            _player.TakeDamage(_damage);
         }
 
         #endregion
